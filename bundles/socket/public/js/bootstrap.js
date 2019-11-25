@@ -4,7 +4,7 @@ const io   = require('socket.io-client');
 const uuid = require('uuid');
 
 // Require local dependencies
-const store = require('default/public/js/store');
+const store = require('core/public/js/store');
 
 /**
  * Build socket class
