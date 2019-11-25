@@ -157,6 +157,7 @@ class SocketDaemon extends Daemon {
       socketID  : uuid(),
       sessionID : socket.request.sessionID,
     };
+    socket.IDs = IDs;
 
     // log connected
     this.logger.log('debug', `client ${IDs.socketID} - ${user ? await user.name() : 'anonymous'} connected`, {
@@ -215,14 +216,10 @@ class SocketDaemon extends Daemon {
    */
   async onDisconnect(socket) {
     // check user
-    const user = (!(socket.request.user || {}).logged_in) ? false : socket.request.user;
+    const { user } = socket.request;
 
     // set ids
-    const IDs = {
-      userID    : user ? user.get('_id').toString() : null,
-      socketID  : uuid(),
-      sessionID : socket.request.sessionID,
-    };
+    const { IDs } = socket;
 
     // Log disconnected
     this.logger.log('debug', `client ${IDs.socketID} - ${user ? await user.name() : 'anonymous'} disconnected`, {
