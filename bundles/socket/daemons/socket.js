@@ -159,6 +159,9 @@ class SocketDaemon extends Daemon {
     };
     socket.IDs = IDs;
 
+    // hook connect
+    await this.eden.hook('socket.connect', { socket });
+
     // log connected
     this.logger.log('debug', `client ${IDs.socketID} - ${user ? await user.name() : 'anonymous'} connected`, {
       class : this.constructor.name,
@@ -217,6 +220,9 @@ class SocketDaemon extends Daemon {
   async onDisconnect(socket) {
     // check user
     const { user } = socket.request;
+
+    // hook connect
+    await this.eden.hook('socket.disconnect', { socket });
 
     // set ids
     const { IDs } = socket;
@@ -331,7 +337,7 @@ class SocketDaemon extends Daemon {
 
         args      : data.args,
         call      : data.name,
-        sessionID : socket.request.cookies[config.get('session.key') || 'eden.session.id'],
+        sessionID : socket.IDs.sessionID,
       };
 
       // Hook opts
