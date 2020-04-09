@@ -157,7 +157,8 @@ class SocketDaemon extends Daemon {
       socketID  : uuid(),
       sessionID : socket.request.sessionID,
     };
-    socket.IDs = IDs;
+    socket.IDs  = IDs;
+    socket.user = user;
 
     // hook connect
     await this.eden.hook('socket.connect', { socket });
