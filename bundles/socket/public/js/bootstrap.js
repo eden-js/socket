@@ -107,15 +107,20 @@ class SocketStore {
    *
    * @return {Promise}
    */
-  async route(route, opts) {
+  async route(method, path, opts = {}) {
+    // check body
+    const { query, body } = opts;
+
     // Let id
     const id = uuid();
 
     // Create emission
     const emission = {
       id,
-      opts,
-      route,
+      path,
+      method,
+      body  : body || {},
+      query : query || {},
     };
 
     // Emit to socket

@@ -1,13 +1,13 @@
 
 // Require dependencies
-const uuid         = require('uuid');
-const fetch        = require('node-fetch');
-const config       = require('config');
-const Daemon       = require('daemon');
-const session      = require('express-session');
-const socketio     = require('socket.io');
-const SessionStore = require('@edenjs/session-store');
-const cookieParser = require('cookie-parser');
+import uuid         from 'uuid';
+import fetch        from 'node-fetch';
+import config       from 'config';
+import Daemon       from 'daemon';
+import session      from 'express-session';
+import socketio     from 'socket.io';
+import SessionStore from '@edenjs/session-store';
+import cookieParser from 'cookie-parser';
 
 // Require cache dependencies
 const calls = cache('calls');
@@ -24,7 +24,7 @@ const aclHelper = helper('user/acl');
  * @cluster front
  * @cluster socket
  */
-class SocketDaemon extends Daemon {
+export default class SocketDaemon extends Daemon {
   /**
    * Construct socket daemon
    */
@@ -76,7 +76,7 @@ class SocketDaemon extends Daemon {
    */
   build() {
     // Set io
-    this.__socketIO = socketio(this.eden.router.server);
+    this.__socketIO = socketio(this.eden.router.app.server);
 
     // Listen for connection
     this.__socketIO.on('connection', this.onConnect);
@@ -364,28 +364,53 @@ class SocketDaemon extends Daemon {
     if (user) await user.refresh();
 
     // create headers
-    const headers = Object.assign({}, {
+    const headers = {
       host   : socket.request.headers.host,
       origin : socket.request.headers.origin,
       cookie : socket.request.headers.cookie,
+      Accept : 'application/json',
 
       'user-agent'      : socket.request.headers['user-agent'],
       'accept-encoding' : socket.request.headers['accept-encoding'],
       'accept-language' : socket.request.headers['accept-language'],
       'x-forwarded-for' : socket.request.headers['x-forwarded-for'],
-    }, {
-      Accept : 'application/json',
-    });
+    };
 
-    // get headers
-    const res = await fetch(`http://${config.get('host')}:${this.eden.port}${data.route}`, {
-      headers,
+    // create handlers array
+    const handlers = this.eden.router.app.find(data.method, data.path).handlers || [];
 
-      redirect : 'follow',
-    });
+    // create faux request and response
+    let req = { ...socket.request };
+    let res = { ...socket.request.res, send : (data, code = 200) => {
+      console.log('send', data);
+      // await text
+      socket.emit(data.id, code, JSON.stringify(data));
+    }, end : (data, code = 200) => {
+      // await text
+      socket.emit(data.id, code, JSON.stringify(data));
+    }, setHeader : () => {}, getHeader : (key) => headers[key] };
 
-    // await text
-    socket.emit(data.id, await res.json());
+    // create next
+    const wrapAndNext = (i) => {
+      // add to req
+      req = Object.assign(req, {
+        user,
+        socket,
+        headers,
+        body      : data.body,
+        query     : data.query,
+        pathname  : data.path,
+        sessionID : socket.IDs.sessionID,
+      });
+
+      if (!handlers[i]) console.log(handlers[i - 1].toString());
+
+      // wrap and next
+      handlers[i](req, res, () => wrapAndNext(i + 1));
+    };
+
+    // wrap and next
+    wrapAndNext(0);
   }
 
   /**
@@ -424,10 +449,3 @@ class SocketDaemon extends Daemon {
     return done;
   }
 }
-
-/**
- * Construct socket daemon
- *
- * @type {socket}
- */
-exports = module.exports = SocketDaemon;
