@@ -115,6 +115,7 @@ export default class SocketDaemon extends Daemon {
         socket.request.user = await User.findById(userSession.passport.user);
         socket.request.session = userSession;
       }
+
       // run next
       next();
     });
