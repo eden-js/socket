@@ -1,16 +1,12 @@
 
 // Require dependencies
 import uuid         from 'uuid';
-import fetch        from 'node-fetch';
 import config       from 'config';
 import Daemon       from 'daemon';
 import session      from 'express-session';
 import socketio     from 'socket.io';
 import SessionStore from '@edenjs/session-store';
 import cookieParser from 'cookie-parser';
-
-// Require cache dependencies
-const calls = cache('calls');
 
 // require models
 const User = model('user');
@@ -23,6 +19,7 @@ const aclHelper = helper('user/acl');
  *
  * @cluster front
  * @cluster socket
+ * @priority 1000
  */
 export default class SocketDaemon extends Daemon {
   /**
@@ -75,6 +72,11 @@ export default class SocketDaemon extends Daemon {
    * Build chat daemon
    */
   build() {
+    // initializing
+    this.logger.log('info', 'initializing socket.io', {
+      class : this.constructor.name
+    });
+
     // Set io
     this.__socketIO = socketio(this.eden.router.app.server);
 
@@ -318,19 +320,26 @@ export default class SocketDaemon extends Daemon {
     // Reload user
     if (user) await user.refresh();
 
-    // Loop endpoints
-    const matched = calls.filter((call) => {
-      // Remove call
-      return data.name === call.path;
+    // load calls
+    let call = null;
+    const ctrl = Object.values(this.eden.get('controllers')).find((ctrl) => {
+      // return found
+      const subCall = ctrl.calls.find((c) => c.path === data.name);
+
+      // set call
+      if (subCall) call = subCall;
+
+      // return sub call
+      return subCall;
     });
 
-    // Loop matched
-    matched.forEach(async (call) => {
+    // run function
+    if (ctrl) {
       // check ACL
       if (call.acl && !await aclHelper.validate(user, call.acl)) return;
 
       // get controller
-      const controller = await this.eden.controller(call.file);
+      const controller = this.eden.get(`controller.${ctrl.data.file}`);
 
       // Set opts
       const opts = {
@@ -346,11 +355,11 @@ export default class SocketDaemon extends Daemon {
       await this.eden.hook('socket.call.opts', opts);
 
       // Run endpoint
-      const response = await controller[call.fn].apply(controller, [...data.args, opts]);
+      const response = await controller[call.fn](...data.args, opts);
 
       // Return response
       socket.emit(data.id, response);
-    });
+    }
   }
 
   /**
@@ -383,7 +392,6 @@ export default class SocketDaemon extends Daemon {
     // create faux request and response
     let req = { ...socket.request };
     let res = { ...socket.request.res, send : (data, code = 200) => {
-      console.log('send', data);
       // await text
       socket.emit(data.id, code, JSON.stringify(data));
     }, end : (data, code = 200) => {
