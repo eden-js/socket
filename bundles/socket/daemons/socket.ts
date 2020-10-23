@@ -51,6 +51,8 @@ export default class SocketDaemon extends Daemon {
     this.countConnections = this.countConnections.bind(this);
 
     // Bind private methods
+    this.id = this.id.bind(this);
+    this.room = this.room.bind(this);
     this.emit = this.emit.bind(this);
     this.user = this.user.bind(this);
     this.onCall = this.onCall.bind(this);
@@ -121,6 +123,15 @@ export default class SocketDaemon extends Daemon {
       // run next
       next();
     });
+
+    // user
+    this.eden.on('socket.id', this.id, true);
+
+    // leave/join
+    this.eden.on('socket.join', (...args) => this.room('join', ...args), true);
+
+    // leave/join
+    this.eden.on('socket.leave', (...args) => this.room('leave', ...args), true);
 
     // Listen for global event for emit
     this.eden.on('socket.emit', this.emit, true);
@@ -244,6 +255,9 @@ export default class SocketDaemon extends Daemon {
       // check ids
       if (!IDs[`${key}ID`]) return;
 
+      // check size
+      if (!this.__connections[`${key}s`] || !this.__connections[`${key}s`].get(IDs[`${key}ID`])) return;
+
       // remove
       this.__connections[`${key}s`].get(IDs[`${key}ID`]).delete(IDs.socketID);
 
@@ -294,18 +308,44 @@ export default class SocketDaemon extends Daemon {
   // ////////////////////////////////////////////////////////////////////////////
 
   /**
+   * emit to id
+   *
+   * @param param0 
+   */
+  id({ id, type, args }) {
+    // check connections
+    if (!this.__connections.sockets.has(id)) return;
+
+    // emit
+    this.__connections.sockets.get(id).emit(type, ...args);
+  }
+
+  /**
+   * emit to id
+   *
+   * @param param0 
+   */
+  room(type, { id, room }) {
+    // check connections
+    if (!this.__connections.sockets.has(id)) return;
+
+    // emit
+    this.__connections.sockets.get(id)[type](room);
+  }
+
+  /**
    * Emit to socket funciton
    *
    * @param {Object} data
    */
-  emit(data) {
+  emit({ room, type, args }) {
     // Check if room
-    if (data.room) {
+    if (room) {
       // Emit to room
-      this.__socketIO.to(data.room).emit(data.type, ...data.args);
+      this.__socketIO.to(room).emit(type, ...args);
     } else {
       // Emit to everyone
-      this.__socketIO.emit(data.type, ...data.args);
+      this.__socketIO.emit(type, ...args);
     }
   }
 
@@ -355,7 +395,7 @@ export default class SocketDaemon extends Daemon {
       await this.eden.hook('socket.call.opts', opts);
 
       // Run endpoint
-      const response = await controller[call.fn](...data.args, opts);
+      const response = await controller[call.fn](opts, ...data.args);
 
       // Return response
       socket.emit(data.id, response);

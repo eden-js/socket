@@ -14,10 +14,59 @@ class SocketHelper extends Helper {
     super();
 
     // Bind methods
+    this.id = this.id.bind(this);
+    this.join = this.join.bind(this);
     this.room = this.room.bind(this);
     this.user = this.user.bind(this);
     this.emit = this.emit.bind(this);
+    this.leave = this.leave.bind(this);
     this.session = this.session.bind(this);
+  }
+
+  /**
+   * Emits to room
+   *
+   * @param  {String}  name
+   * @param  {String}  type
+   * @param  {*}       args
+   */
+  id(id, type, ...args) {
+    // Emit to socket
+    this.eden.emit('socket.id', {
+      id,
+      type,
+      args,
+    }, true);
+  }
+
+  /**
+   * Emits to room
+   *
+   * @param  {String}  name
+   * @param  {String}  type
+   * @param  {*}       args
+   */
+  join(id, room) {
+    // Emit to socket
+    this.eden.emit('socket.join', {
+      id,
+      room,
+    }, true);
+  }
+
+  /**
+   * Emits to room
+   *
+   * @param  {String}  name
+   * @param  {String}  type
+   * @param  {*}       args
+   */
+  leave(id, room) {
+    // Emit to socket
+    this.eden.emit('socket.leave', {
+      id,
+      room,
+    }, true);
   }
 
   /**
