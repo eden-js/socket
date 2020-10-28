@@ -34,7 +34,8 @@ class SocketStore {
    */
   async build() {
     // Run socket
-    this.socket = io.connect(`//${window.location.hostname}`, store.get('config.socket.params') || {});
+    this.socket = io.connect(store.get('config.socket.url') === 'host' ? `//${window.location.hostname}` : store.get('config.socket.url'),
+      store.get('config.socket.params') || {});
 
     // socket on
     this.socket.on('connect', () => {
