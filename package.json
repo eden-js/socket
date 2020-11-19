@@ -3,7 +3,7 @@
   "description": "",
   "version": "2.6.0",
   "dependencies": {
-    "@edenjs/session-store": "0.0.2",
+    "@edenjs/session-store": "0.0.4",
     "cookie-parser": "^1.4.5",
     "express-session": "^1.17.1",
     "node-fetch": "^2.6.1",
