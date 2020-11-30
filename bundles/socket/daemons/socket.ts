@@ -1,12 +1,12 @@
 
 // Require dependencies
-import uuid         from 'uuid';
-import config       from 'config';
-import Daemon       from 'daemon';
-import session      from 'express-session';
-import socketio     from 'socket.io';
-import SessionStore from '@edenjs/session-store';
-import cookieParser from 'cookie-parser';
+import config         from 'config';
+import Daemon         from 'daemon';
+import session        from 'express-session';
+import socketio       from 'socket.io';
+import SessionStore   from '@edenjs/session-store';
+import cookieParser   from 'cookie-parser';
+import { v4 as uuid } from 'uuid';
 
 // require models
 const User = model('user');
@@ -82,9 +82,6 @@ export default class SocketDaemon extends Daemon {
     // Set io
     this.__socketIO = socketio(this.eden.router.app.server);
 
-    // Listen for connection
-    this.__socketIO.on('connection', this.onConnect);
-
     // initialize store
     SessionStore.initialize(session);
 
@@ -123,6 +120,9 @@ export default class SocketDaemon extends Daemon {
       // run next
       next();
     });
+
+    // Listen for connection
+    this.__socketIO.on('connection', this.onConnect);
 
     // user
     this.eden.on('socket.id', this.id, true);

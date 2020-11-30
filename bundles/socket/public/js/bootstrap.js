@@ -1,7 +1,7 @@
 
 // Require dependencies
 const io   = require('socket.io-client');
-const uuid = require('uuid');
+const uuid = require('uuid').v4;
 
 // Require local dependencies
 const store = require('core/public/js/store');
