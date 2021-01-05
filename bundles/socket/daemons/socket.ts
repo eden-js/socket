@@ -95,8 +95,6 @@ export default class SocketDaemon extends Daemon {
         secret : config.get('secret'),
       });
 
-      console.log('NEW SOCKET REQUEST');
-
       // await cookies parsed
       await new Promise(resolve => parser(socket.request, null, resolve));
 
@@ -118,8 +116,6 @@ export default class SocketDaemon extends Daemon {
         socket.request.user = await User.findById(userSession.passport.user);
         socket.request.session = userSession;
       }
-
-      console.log('NEXTING SOCKET REQUEST');
 
       // run next
       next();
