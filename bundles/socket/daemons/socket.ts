@@ -3,9 +3,9 @@
 import config         from 'config';
 import Daemon         from 'daemon';
 import session        from 'express-session';
-import socketio       from 'socket.io';
 import SessionStore   from '@edenjs/session-store';
 import cookieParser   from 'cookie-parser';
+import { Server }     from 'socket.io';
 import { v4 as uuid } from 'uuid';
 
 // require models
@@ -80,7 +80,9 @@ export default class SocketDaemon extends Daemon {
     });
 
     // Set io
-    this.__socketIO = socketio(this.eden.router.app.server);
+    this.__socketIO = new Server(this.eden.router.app.server, {
+      allowEIO3 : true,
+    });
 
     // initialize store
     SessionStore.initialize(session);

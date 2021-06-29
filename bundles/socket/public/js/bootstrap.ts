@@ -1,10 +1,10 @@
 
 // Require dependencies
-const io   = require('socket.io-client');
-const uuid = require('uuid').v4;
+import io from 'socket.io-client';
+import { v4 as uuid } from 'uuid';
 
 // Require local dependencies
-const store = require('core/public/js/store');
+import store from 'core/public/js/store';
 
 /**
  * Build socket class
@@ -34,8 +34,9 @@ class SocketStore {
    */
   async build() {
     // Run socket
-    this.socket = io.connect(store.get('config.socket.url') === 'host' ? `//${window.location.hostname}` : store.get('config.socket.url'),
-      store.get('config.socket.params') || {});
+    this.socket = io.connect(store.get('config.socket.url') === 'host' ? null : store.get('config.socket.url'), {
+      ...(store.get('config.socket.params') || {}),
+    });
 
     // socket on
     this.socket.on('connect', () => {
@@ -162,4 +163,7 @@ class SocketStore {
  *
  * @type {SocketStore}
  */
-exports = module.exports = window.eden.socket = new SocketStore();
+window.eden.socket = new SocketStore();
+
+// export default
+export default window.eden.socket;
