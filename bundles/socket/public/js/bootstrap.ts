@@ -163,7 +163,10 @@ class SocketStore {
  *
  * @type {SocketStore}
  */
-window.eden.socket = new SocketStore();
+const builtSocket = new SocketStore();
+
+// export to window
+window.eden.socket = builtSocket;
 
 // export default
-export default window.eden.socket;
+export default builtSocket;
