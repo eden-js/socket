@@ -81,7 +81,10 @@ export default class SocketDaemon extends Daemon {
 
     // Set io
     this.__socketIO = new Server(this.eden.router.app.server, {
-      cors      : {},
+      cors : {
+        origin      : true,
+        credentials : true
+      },
       allowEIO3 : true,
     });
 
