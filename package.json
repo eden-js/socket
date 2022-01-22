@@ -6,7 +6,7 @@
     "@edenjs/session-store": "0.0.4",
     "cookie-parser": "^1.4.5",
     "express-session": "^1.17.2",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.1.1",
     "socket.io": "^4.2.0",
     "socket.io-client": "^4.2.0",
     "uuid": "^8.3.2"
