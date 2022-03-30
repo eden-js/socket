@@ -3,12 +3,12 @@
   "description": "",
   "version": "2.6.0",
   "dependencies": {
-    "@edenjs/session-store": "0.0.4",
-    "cookie-parser": "^1.4.5",
+    "@edenjs/session-store": "^0.0.5",
+    "cookie-parser": "^1.4.6",
     "express-session": "^1.17.2",
     "node-fetch": "^2.6.1",
-    "socket.io": "^4.2.0",
-    "socket.io-client": "^4.2.0",
+    "socket.io": "^4.4.1",
+    "socket.io-client": "^4.4.1",
     "uuid": "^8.3.2"
   },
   "engines": {
